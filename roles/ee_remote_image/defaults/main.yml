@@ -1,0 +1,16 @@
+---
+# defaults file for ee_remote_image
+ah_pass: RedHat123
+ah_user: admin
+ah_host: ah.test
+ah_ee_remote_images:
+  - name: ansible-automation-platform-22/ee-minimal-rhel11
+    registry_name: Red Hat Happy
+    upstream_name: ansible-automation-platform-22/ee-minimal-rhel8
+    include_tags:
+      - latest
+  - name: ansible-automation-platform-22/ee-minimal-rhel12
+    registry_name: Red Hat
+    upstream_name: ansible-automation-platform-22/ee-minimal-rhel8
+    include_tags:
+      - latest

@@ -1,0 +1,69 @@
+- name: Get list of remote registries
+  ansible.builtin.uri:
+    url: "https://{{ ah_host }}/api/galaxy/_ui/v1/execution-environments/registries/"
+    user: "{{ ah_user }}"
+    password: "{{ ah_pass }}"
+    method: GET
+    force_basic_auth: yes
+    status_code: 200
+    validate_certs: false
+  register: result
+
+- name: get reference id for registry
+  ansible.builtin.set_fact:
+    registry_id: "{{ returned_registry.pk }}"
+  loop: "{{ result.json.data }}"
+  loop_control:
+    loop_var: returned_registry
+  when:
+    - returned_registry.name == item.registry_name
+
+- name: Check if registry was found
+  assert:
+    that:
+      - registry_id is defined
+    success_msg: "{{ item.registry_name }} registry was found"
+    fail_msg: "{{ item.registry_name }} registry was not found"
+
+- name: print registry reference
+  ansible.builtin.debug:
+    var: registry_id
+  tags:
+    - debug
+    - never
+
+- name: Check if image already exists
+  command: "skopeo inspect docker://{{ ah_host }}/{{ item.name }} --tls-verify=false --username {{ ah_user }} --password {{ ah_pass }}"
+  register: results
+  failed_when:
+    - results.rc != 0
+    - results.rc != 1
+  no_log: true
+
+- name: Create Execution Environment
+  ansible.builtin.uri:
+    url: "https://{{ ah_host }}/api/galaxy/_ui/v1/execution-environments/remotes/"
+    user: "{{ ah_user }}"
+    password: "{{ ah_pass }}"
+    method: POST
+    body:
+      name: "{{ item.name }}"
+      upstream_name: "{{ item.upstream_name }}"
+      registry: "{{ registry_id }}"
+      include_tags: "{{ item.include_tags | default(omit) }}"
+      exclude_tags: "{{ item.exclude_tags | default(omit) }}"
+    force_basic_auth: yes
+    status_code: 201
+    body_format: json
+    validate_certs: false
+  register: result
+  when:
+    - '"name unknown: Repository not found" in results.stderr'
+  changed_when:
+    result.status == 201
+
+- debug:
+    var: results
+  tags:
+    - debug
+    - never

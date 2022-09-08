@@ -1,0 +1,21 @@
+---
+# handlers file for ee_remote_image
+- name: Create Execution Environment
+  ansible.builtin.uri:
+    url: "https://{{ ah_host }}/api/galaxy/_ui/v1/execution-environments/remotes/"
+    user: "{{ ah_user }}"
+    password: "{{ ah_pass }}"
+    method: POST
+    body:
+      name: "{{ item.name }}"
+      upstream_name: "{{ item.upstream_name }}"
+      registry: "{{ registry_id }}"
+      include_tags: "{{ item.include_tags | default(omit) }}"
+      exclude_tags: "{{ item.exclude_tags | default(omit) }}"
+    force_basic_auth: yes
+    status_code: 201
+    body_format: json
+    validate_certs: false
+  register: result
+  changed_when:
+    result.status == 201
