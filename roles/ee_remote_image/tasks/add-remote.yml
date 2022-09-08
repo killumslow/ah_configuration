@@ -1,10 +1,11 @@
+---
 - name: Get list of remote registries
   ansible.builtin.uri:
     url: "https://{{ ah_host }}/api/galaxy/_ui/v1/execution-environments/registries/"
     user: "{{ ah_user }}"
     password: "{{ ah_pass }}"
     method: GET
-    force_basic_auth: yes
+    force_basic_auth: True
     status_code: 200
     validate_certs: false
   register: result
@@ -52,7 +53,7 @@
       registry: "{{ registry_id }}"
       include_tags: "{{ item.include_tags | default(omit) }}"
       exclude_tags: "{{ item.exclude_tags | default(omit) }}"
-    force_basic_auth: yes
+    force_basic_auth: True
     status_code: 201
     body_format: json
     validate_certs: false
@@ -67,3 +68,4 @@
   tags:
     - debug
     - never
+...

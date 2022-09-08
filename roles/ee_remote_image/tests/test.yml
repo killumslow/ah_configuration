@@ -3,3 +3,4 @@
   gather_facts: false
   roles:
     - ee_remote_image
+...
